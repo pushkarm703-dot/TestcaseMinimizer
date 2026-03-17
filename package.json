@@ -1,0 +1,39 @@
+{
+  "name": "devopsproject-testcaseminimizer",
+  "version": "1.0.0",
+  "description": "Test Case Minimizer - Minimize test suites while maintaining coverage (DevOps project, Node.js)",
+  "main": "src/main/index.js",
+  "scripts": {
+    "dev": "nodemon src/main/index.js",
+    "start": "node src/main/index.js",
+    "test": "jest --runInBand",
+    "lint": "eslint .",
+    "test:integration": "jest --runInBand --config jest.integration.config.cjs"
+  },
+  "keywords": [
+    "devops",
+    "test",
+    "coverage",
+    "minimization",
+    "nodejs",
+    "express"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "morgan": "^1.10.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.57.0",
+    "eslint-config-standard": "^17.1.0",
+    "eslint-plugin-import": "^2.29.0",
+    "eslint-plugin-n": "^16.6.0",
+    "eslint-plugin-promise": "^6.1.1",
+    "jest": "^29.7.0",
+    "nodemon": "^3.0.3",
+    "supertest": "^7.0.0"
+  }
+}
+
