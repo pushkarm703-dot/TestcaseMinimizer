@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Test Case Minimizer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      body {
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        margin: 0;
+        background: #0f172a;
+        color: #e5e7eb;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        min-height: 100vh;
+        padding: 24px;
+      }
+      .card {
+        background: #020617;
+        border-radius: 16px;
+        padding: 24px;
+        max-width: 960px;
+        width: 100%;
+        box-shadow: 0 24px 60px rgba(15, 23, 42, 0.8);
+        border: 1px solid rgba(148, 163, 184, 0.2);
+      }
+      h1 {
+        font-size: 1.8rem;
+        margin-bottom: 0.25rem;
+      }
+      h2 {
+        font-size: 1.1rem;
+        margin: 1.5rem 0 0.5rem;
+      }
+      .subtitle {
+        color: #9ca3af;
+        font-size: 0.9rem;
+        margin-bottom: 1.5rem;
+      }
+      label {
+        display: block;
+        font-size: 0.9rem;
+        margin-bottom: 0.25rem;
+        color: #e5e7eb;
+      }
+      textarea {
+        width: 100%;
+        min-height: 140px;
+        border-radius: 8px;
+        border: 1px solid #4b5563;
+        background: #020617;
+        color: #e5e7eb;
+        padding: 10px 12px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+        font-size: 0.85rem;
+        resize: vertical;
+      }
+      textarea:focus {
+        outline: 2px solid #38bdf8;
+        outline-offset: 1px;
+      }
+      button {
+        margin-top: 1rem;
+        padding: 0.6rem 1.2rem;
+        border-radius: 999px;
+        border: none;
+        background: linear-gradient(to right, #22c55e, #16a34a);
+        color: white;
+        font-weight: 600;
+        cursor: pointer;
+        font-size: 0.9rem;
+        box-shadow: 0 12px 30px rgba(34, 197, 94, 0.4);
+      }
+      button:hover {
+        filter: brightness(1.05);
+      }
+      button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        box-shadow: none;
+      }
+      .row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+      }
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.25rem 0.6rem;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        background: rgba(56, 189, 248, 0.1);
+        color: #7dd3fc;
+        border: 1px solid rgba(56, 189, 248, 0.4);
+        margin-right: 0.4rem;
+        margin-bottom: 0.25rem;
+      }
+      .result-box {
+        margin-top: 1rem;
+        padding: 0.75rem 0.9rem;
+        border-radius: 10px;
+        background: rgba(15, 23, 42, 0.85);
+        border: 1px solid rgba(75, 85, 99, 0.8);
+        font-size: 0.85rem;
+        white-space: pre-wrap;
+        max-height: 260px;
+        overflow: auto;
+      }
+      .status-ok {
+        color: #4ade80;
+      }
+      .status-bad {
+        color: #f97373;
+      }
+      .hint {
+        font-size: 0.75rem;
+        color: #9ca3af;
+        margin-top: 0.3rem;
+      }
+      @media (max-width: 768px) {
+        .row {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h1>Test Case Minimizer</h1>
+      <div class="subtitle">
+        Minimize your test suite while preserving coverage. Paste your requirements and tests,
+        and the tool will select the smallest set of tests that still covers everything.
+      </div>
+
+      <div class="row">
+        <div>
+          <h2>1. Requirements</h2>
+          <label for="requirements">Comma-separated requirement IDs</label>
+          <textarea id="requirements">R1,R2,R3,R4</textarea>
+          <div class="hint">Example: R1,R2,R3 or login,signup,profile</div>
+        </div>
+        <div>
+          <h2>2. Tests & Coverage</h2>
+          <label for="tests">JSON array of tests and what they cover</label>
+          <textarea id="tests">[
+  { "id": "T1", "covers": ["R1", "R2"] },
+  { "id": "T2", "covers": ["R2", "R3"] },
+  { "id": "T3", "covers": ["R3", "R4"] },
+  { "id": "T4", "covers": ["R1", "R4"] }
+]</textarea>
+          <div class="hint">Edit this JSON to match your project&apos;s test suite.</div>
+        </div>
+      </div>
+
+      <button id="runBtn">Minimize Test Suite</button>
+
+      <h2>3. Result</h2>
+      <div id="statusLine" class="hint"></div>
+      <div id="result" class="result-box">// Result will appear here</div>
+    </div>
+
+    <script>
+      const btn = document.getElementById('runBtn');
+      const requirementsEl = document.getElementById('requirements');
+      const testsEl = document.getElementById('tests');
+      const resultEl = document.getElementById('result');
+      const statusLine = document.getElementById('statusLine');
+
+      btn.addEventListener('click', async () => {
+        btn.disabled = true;
+        statusLine.textContent = 'Running minimization...';
+        resultEl.textContent = '';
+
+        try {
+          const reqs = requirementsEl.value
+            .split(',')
+            .map((r) => r.trim())
+            .filter(Boolean);
+
+          let tests;
+          try {
+            tests = JSON.parse(testsEl.value);
+          } catch (e) {
+            statusLine.textContent = 'Invalid tests JSON. Please fix and try again.';
+            btn.disabled = false;
+            return;
+          }
+
+          const res = await fetch('/api/minimize', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ requirements: reqs, tests })
+          });
+
+          const data = await res.json();
+
+          if (!res.ok) {
+            statusLine.textContent = data.error || 'Request failed';
+            statusLine.className = 'hint status-bad';
+            resultEl.textContent = '';
+            btn.disabled = false;
+            return;
+          }
+
+          statusLine.className = 'hint ' + (data.coverageSatisfied ? 'status-ok' : 'status-bad');
+          statusLine.textContent = data.coverageSatisfied
+            ? 'Coverage satisfied with a minimized suite.'
+            : 'Best effort: some requirements could not be covered.';
+
+          let text = '';
+          text += 'Selected tests (' + data.selectedTests.length + '):\\n';
+          text += data.selectedTests.join(', ') + '\\n\\n';
+
+          if (Array.isArray(data.uncoveredRequirements) && data.uncoveredRequirements.length > 0) {
+            text += 'Uncovered requirements: ' + data.uncoveredRequirements.join(', ') + '\\n\\n';
+          }
+
+          text += 'Raw response:\\n' + JSON.stringify(data, null, 2);
+          resultEl.textContent = text;
+        } catch (err) {
+          statusLine.textContent = 'Unexpected error: ' + err.message;
+          statusLine.className = 'hint status-bad';
+        } finally {
+          btn.disabled = false;
+        }
+      });
+    </script>
+  </body>
+  </html>
+
