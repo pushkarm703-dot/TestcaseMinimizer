@@ -1,0 +1,35 @@
+pipeline {
+  agent any
+
+  environment {
+    APP_NAME = 'devopsproject-testcaseminimizer'
+  }
+
+  stages {
+    stage('Checkout') {
+      steps {
+        checkout scm
+      }
+    }
+
+    stage('Install') {
+      steps {
+        sh 'npm install'
+      }
+    }
+
+    stage('Test') {
+      steps {
+        sh 'npm test'
+        sh 'npm run test:integration'
+      }
+    }
+
+    stage('Build Docker Image') {
+      steps {
+        sh "docker build -t ${APP_NAME}:latest -f infrastructure/docker/Dockerfile ."
+      }
+    }
+  }
+}
+
