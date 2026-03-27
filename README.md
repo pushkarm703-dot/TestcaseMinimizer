@@ -1,8 +1,8 @@
 Test Case Minimizer - DevOps Project
 ====================================
 
-Student Name: [Your Name]
-Registration No: [Your Registration Number]
+Student Name: Pushkar Punit Mishra
+Registration No: 23FE10CSE00502
 Course: CSE3253 DevOps [PE6]
 Semester: VI (2025-2026)
 Project Type: Jenkins & CI/CD, Containerization, Monitoring
